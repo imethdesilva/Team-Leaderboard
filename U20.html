@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>U20 Leaderboard</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #ffffff;
+      text-align: center;
+      margin: 0;
+      padding: 0;
+    }
+    h1 {
+      color: #ffffff;
+      display: inline-block;
+      margin-left: 20px; /* Space between logo and title */
+    }
+    .header-container {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-top: 20px;
+    }
+    .scrabble-logo {
+      width: auto;
+      height: 70px; /* Adjust the height based on your logo's aspect ratio */
+      margin-right: 20px; /* Space between logo and title */
+    }
+    table {
+      width: 70%;
+      margin: 20px auto;
+      border-collapse: collapse;
+      background: #ffffff;
+    }
+    th, td {
+      border: 1px solid #000000;
+      padding: 10px;
+      text-align: center;
+      height: 20px;
+    }
+    th {
+      background-color: #000000;
+      color: white;
+    }
+    .school-logo {
+      width: 23px;
+      height: 23px;
+      border-radius: 0%;
+    }
+
+    body {
+  font-family: Arial, sans-serif;
+  background-image: url('img/V1-BLUE-NIGHT-FOREST-1920x1080.webp'); /* Replace with the actual path to your image */
+  background-size: cover; /* Ensures the image covers the entire screen */
+  background-position: center; /* Centers the image */
+  background-repeat: no-repeat; /* Prevents the image from repeating */
+  margin: 0;
+  padding: 0;
+}
+
+  </style>
+</head>
+<body>
+  <div class="header-container">
+    <img src="img/transparent logo.png" class="scrabble-logo" alt="Scrabble Federation of Sri Lanka Logo"> <!-- Replace with your actual logo path -->
+    <h1>Sri Lanka Schools Scrabble Championship Finals - Under 20</h1>
+  </div>
+  
+  <table id="leaderboard">
+    <thead>
+      <tr>
+        <th>Rank</th>
+        <th>Logo</th>
+        <th>School</th>
+        <th>Total Rounds</th>
+        <th>Total Games</th>
+        <th>Total Margin</th>
+      </tr>
+    </thead>
+    <tbody>
+      <!-- Dynamic content goes here -->
+    </tbody>
+  </table>
+  
+  <script>
+    const sheetUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRYrNg4jTrvrl-qXJPnCCw6EX6f8bH35aEmsCMTvZlVWFIb5KdjNjj9Vlc9DZFr76H9w1Iwqlb8St62/pub?gid=1549598048&single=true&output=csv"; // Replace with your published Google Sheets CSV URL.
+
+    // Mapping of school names to logos (URLs)
+    const schoolLogos = {
+      "Gateway College Colombo": "img/gateway.png", // Replace with actual URLs
+      "Lyceum International School Wattala": "img/lyceumw.jpeg",
+      "S. Thomas' College Mount Lavinia": "img/stc.png",
+      "Girls' High School Kandy": "img/ghs.jpeg",
+      "Maliyadeva College": "img/maliyadevaboys.png",
+      "Maliyadeva Balika Vidyalaya Kurunegala": "img/maliyadevabalika.png",
+      "Richmond College Galle": "img/richmond.jpeg",
+      "Mahinda College Galle": "img/mahinda.jpeg",
+      "Southlands College": "img/southlands.jpeg",
+      "Ladies' College Colombo": "img/lc.jpeg",
+      "Nalanda College Colombo 10": "img/nalanda.png",
+      "Royal College": "img/royal.jpeg"
+    };
+
+    async function fetchLeaderboard() {
+      const response = await fetch(sheetUrl);
+      const csvData = await response.text();
+      const rows = csvData.split("\n");
+
+      // Skip the first two rows (header and empty row)
+      const validRows = rows.slice(2) // Start from the 3rd row (index 2)
+                             .filter(row => row.trim() !== "") // Filter out any empty rows
+                             .map(row => row.split(","));
+
+      const tableBody = document.getElementById("leaderboard").querySelector("tbody");
+      tableBody.innerHTML = ""; // Clear existing rows
+
+      // Sorting the data based on Total Rounds > Total Games > Total Margin
+      const sortedRows = validRows.sort((a, b) => {
+        // Sort by Total Rounds first
+        if (b[1] - a[1] !== 0) return b[1] - a[1]; 
+        // If rounds are equal, sort by Total Games
+        if (b[2] - a[2] !== 0) return b[2] - a[2]; 
+        // If Total Games are also equal, sort by Total Margin
+        return b[3] - a[3];
+      });
+
+      // Ensure only valid rows (non-header rows) are inserted into the table
+      sortedRows.forEach((row, index) => {
+        const [school, totalRounds, totalGames, totalMargin] = row;
+        if (school && totalRounds && totalGames && totalMargin) {
+          // Get logo for the current school
+          const logoUrl = schoolLogos[school] || 'https://example.com/logos/default_logo.png'; // Fallback logo if no match
+
+          const newRow = `
+            <tr>
+              <td>${index + 1}</td>
+              <td><img src="${logoUrl}" class="school-logo" alt="${school} Logo"></td>
+              <td>${school}</td>
+              <td>${totalRounds}</td>
+              <td>${totalGames}</td>
+              <td>${totalMargin}</td>
+            </tr>
+          `;
+          tableBody.insertAdjacentHTML("beforeend", newRow);
+        }
+      });
+    }
+
+    // Refresh leaderboard every 60 seconds
+    fetchLeaderboard();
+    setInterval(fetchLeaderboard, 60000);
+  </script>
+</body>
+</html>
